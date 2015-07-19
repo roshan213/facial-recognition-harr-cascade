@@ -15,7 +15,7 @@ def main():
     index=1
     for detected_face in detects:
         print detected_face
-        if detected_face['confidence'] < 150:
+        if detected_face['confidence'] < 100:
             detectedImagePath = imagesDir+"/image"+str(detected_face['search_label'])+'.jpeg'
             referenceImagePath = refDir+"/image"+str(detected_face['ref_label'])+'.jpeg'
 
@@ -155,7 +155,8 @@ def trainFaceRecognizer_LBPH(recognizer, path):
 
 def recognizeFaces_LBPH(refDir, imagesDir):
 
-    recognizer = cv2.createEigenFaceRecognizer()
+    #recognizer = cv2.createEigenFaceRecognizer()
+    recognizer = cv2.createLBPHFaceRecognizer()
 
     trainFaceRecognizer_LBPH(recognizer, refDir)
 
