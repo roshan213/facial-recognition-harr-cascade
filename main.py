@@ -15,7 +15,7 @@ def main():
     index=1
     for detected_face in detects:
         print detected_face
-        if detected_face['confidence'] < 200:
+        if detected_face['confidence'] < 150:
             detectedImagePath = imagesDir+"/image"+str(detected_face['search_label'])+'.jpeg'
             referenceImagePath = refDir+"/image"+str(detected_face['ref_label'])+'.jpeg'
 
