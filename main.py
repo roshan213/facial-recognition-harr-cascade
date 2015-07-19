@@ -10,15 +10,36 @@ def main():
     imagesDir = "./images"
     matchesDir = "./matches"
 
-    detects = recognizeFaces_LBPH(refDir, imagesDir, matchesDir)
+    detects = recognizeFaces_LBPH(refDir, imagesDir)
     detects = sorted(detects, key=lambda k: k['confidence'])
+    index=1
     for detected_face in detects:
-        if detected_face['confidence'] < 100:
-            foundImage = imagesDir+"/subject"+str(detected_face['search_label'])+'.jpeg'
-            img = cv2.imread(foundImage)
+        print detected_face
+        if detected_face['confidence'] < 200:
+            detectedImagePath = imagesDir+"/image"+str(detected_face['search_label'])+'.jpeg'
+            referenceImagePath = refDir+"/image"+str(detected_face['ref_label'])+'.jpeg'
+
+            faces_in_reference = getFaces_HaarCascade(referenceImagePath)
+            faces_in_detected = getFaces_HaarCascade(detectedImagePath)
+
+            img = cv2.imread(detectedImagePath)
             imgNumpy = np.array(img, 'uint8')
-            cv2.imshow("Match",imgNumpy)
+
+            display = imgNumpy
+
+            for face in faces_in_reference:
+                cv2.imshow("Reference Face",face)
+
+            for face in faces_in_detected:
+                cv2.imshow("Matching Face",face)
+
+            confidence = "{0:.2f}".format(detected_face['confidence'])
+
+            cv2.putText(imgNumpy,"Match # {} | Confidence : {}".format(index,confidence), (15,15), cv2.FONT_HERSHEY_PLAIN, 0.8, [255,255,255])
+
+            cv2.imshow("Matching Image",imgNumpy)
             cv2.waitKey(0)
+            index=index+1
 
 
 
@@ -64,16 +85,16 @@ def renameDir(dirPath):
     index=0
     for root, dirs, filenames in os.walk(dirPath):
         for filename in filenames:
-            pattern = re.compile("^\.|subject\d+\.")
+            pattern = re.compile("^\.|image\d+\.")
             if pattern.match(filename):
                 continue
             index= index + 1
             name, ext = os.path.splitext(filename)
             ext = ".jpeg"
-            destFile = dirPath+"/"+"subject"+str(index)+ext
+            destFile = dirPath+"/"+"image"+str(index)+ext
             while os.path.exists(destFile):
                 index = index+1
-                destFile = dirPath+"/"+"subject"+str(index)+ext
+                destFile = dirPath+"/"+"image"+str(index)+ext
             os.rename(dirPath+"/"+filename,destFile)
 
 def cleanDir(dirPath):
@@ -87,13 +108,13 @@ def cleanDS_Store(dirPath):
 
 
 def getLabel(path):
-    return int(os.path.split(path)[1].split(".")[0].replace("subject", ""))
+    return int(os.path.split(path)[1].split(".")[0].replace("image", ""))
 
 
 def getFaces_HaarCascade(imgPath):
-    haarFaceCascade = 'cascades/haarcascade_frontalface_default.xml'
 
-    faceCascade = cv2.CascadeClassifier(haarFaceCascade)
+    faceCascade = cv2.CascadeClassifier('cascades/haarcascade_frontalface_default.xml')
+    # eyeCascade = cv2.CascadeClassifier('cascades/haarcascade_eye.xml')
 
     # Convert to Grayscale
     imgGray = Image.open(imgPath).convert('L')
@@ -129,7 +150,7 @@ def trainFaceRecognizer_LBPH(recognizer, path):
     recognizer.train(images, np.array(labels))
 
 
-def recognizeFaces_LBPH(refDir, imagesDir, matchesDir):
+def recognizeFaces_LBPH(refDir, imagesDir):
     recognizer = cv2.createLBPHFaceRecognizer()
 
     trainFaceRecognizer_LBPH(recognizer, refDir)
