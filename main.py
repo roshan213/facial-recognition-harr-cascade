@@ -114,7 +114,7 @@ def getLabel(path):
 def getFaces_HaarCascade(imgPath):
 
     faceCascade = cv2.CascadeClassifier('cascades/haarcascade_frontalface_default.xml')
-    # eyeCascade = cv2.CascadeClassifier('cascades/haarcascade_eye.xml')
+    eyeCascade = cv2.CascadeClassifier('cascades/haarcascade_eye.xml')
 
     # Convert to Grayscale
     imgGray = Image.open(imgPath).convert('L')
@@ -129,9 +129,12 @@ def getFaces_HaarCascade(imgPath):
     for face in faces:
         x, y, w, h = face
         array = imgNumpy[y: y + h, x: x + w]
+        eyes = eyeCascade.detectMultiScale(array)
         array = cv2.resize(array, (100, 100))
         array = cv2.equalizeHist(array)
         output.append(array)
+        for (ex,ey,ew,eh) in eyes:
+            cv2.rectangle(array,(ex,ey),(ex+ew,ey+eh),[255,255,255],1)
         # cv2.imshow("Face",array)
         # cv2.waitKey(0)
 
@@ -151,7 +154,8 @@ def trainFaceRecognizer_LBPH(recognizer, path):
 
 
 def recognizeFaces_LBPH(refDir, imagesDir):
-    recognizer = cv2.createLBPHFaceRecognizer()
+
+    recognizer = cv2.createEigenFaceRecognizer()
 
     trainFaceRecognizer_LBPH(recognizer, refDir)
 
